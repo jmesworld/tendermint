@@ -379,6 +379,7 @@ func processChanges(origChanges []*Validator) (updates, removals []*Validator, e
 	updates = make([]*Validator, 0, len(changes))
 	var prevAddr Address
 
+	zeroVotingPowerCounter := 0
 	// Scan changes by address and append valid validators to updates or removals lists.
 	for _, valUpdate := range changes {
 		if bytes.Equal(valUpdate.Address, prevAddr) {
@@ -395,7 +396,14 @@ func processChanges(origChanges []*Validator) (updates, removals []*Validator, e
 				MaxTotalVotingPower, valUpdate.VotingPower)
 			return nil, nil, err
 		case valUpdate.VotingPower == 0:
-			removals = append(removals, valUpdate)
+			zeroVotingPowerCounter++
+			// While we allow to have a 0 VP validator in the set, we don't allow more than 250 of them.
+			// TODO: We gonna need that to be removed in the next release.
+			if zeroVotingPowerCounter < 250 {
+				updates = append(updates, valUpdate)
+			} else {
+				removals = append(removals, valUpdate)
+			}
 		default:
 			updates = append(updates, valUpdate)
 		}
@@ -706,7 +714,8 @@ func (vals *ValidatorSet) VerifyCommit(chainID string, blockID BlockID,
 		// }
 	}
 
-	if got, needed := talliedVotingPower, votingPowerNeeded; got <= needed {
+	fmt.Printf("VerifyCommit: talliedVotingPower %v\n", talliedVotingPower)
+	if got, needed := talliedVotingPower, votingPowerNeeded; got <= needed && needed > 0 {
 		return ErrNotEnoughVotingPowerSigned{Got: got, Needed: needed}
 	}
 

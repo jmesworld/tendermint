@@ -282,11 +282,16 @@ func (voteSet *VoteSet) addVerifiedVote(
 	origSum := votesByBlock.sum
 	quorum := voteSet.valSet.TotalVotingPower()*2/3 + 1
 
+	// Specific case for stake-free period TODO: remove this
+	if voteSet.valSet.TotalVotingPower() == 0 {
+		quorum = 0
+	}
+
 	// Add vote to votesByBlock
 	votesByBlock.addVerifiedVote(vote, votingPower)
 
 	// If we just crossed the quorum threshold and have 2/3 majority...
-	if origSum < quorum && quorum <= votesByBlock.sum {
+	if (origSum == 0 && quorum == 0 || origSum < quorum) && quorum <= votesByBlock.sum {
 		// Only consider the first quorum reached
 		if voteSet.maj23 == nil {
 			maj23BlockID := vote.BlockID
@@ -333,6 +338,7 @@ func (voteSet *VoteSet) SetPeerMaj23(peerID P2PID, blockID BlockID) error {
 		if votesByBlock.peerMaj23 {
 			return nil // Nothing to do
 		}
+		fmt.Printf("SetPeerMaj23: %v claims 2/3 majority for %v\n", peerID, blockID)
 		votesByBlock.peerMaj23 = true
 		// No need to copy votes, already there.
 	} else {
@@ -432,6 +438,10 @@ func (voteSet *VoteSet) HasTwoThirdsAny() bool {
 	}
 	voteSet.mtx.Lock()
 	defer voteSet.mtx.Unlock()
+	if voteSet.valSet.TotalVotingPower()*2/3 == 0 {
+		// Specific case to be removed TODO
+		return true
+	}
 	return voteSet.sum > voteSet.valSet.TotalVotingPower()*2/3
 }
 
@@ -597,7 +607,14 @@ func (voteSet *VoteSet) LogString() string {
 // return the power voted, the total, and the fraction
 func (voteSet *VoteSet) sumTotalFrac() (int64, int64, float64) {
 	voted, total := voteSet.sum, voteSet.valSet.TotalVotingPower()
-	fracVoted := float64(voted) / float64(total)
+	fmt.Printf("voteSet.sumTotalFrac() voted: %v total: %v\n", voted, total)
+
+	fracVoted := 0.0
+	// Only calculate the fraction if total is not zero
+	if total != 0 {
+		fracVoted = float64(voted) / float64(total)
+	}
+
 	return voted, total, fracVoted
 }
 
