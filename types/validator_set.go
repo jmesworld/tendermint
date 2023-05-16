@@ -765,10 +765,12 @@ func (vals *ValidatorSet) VerifyCommitLight(chainID string, blockID BlockID,
 		talliedVotingPower += val.VotingPower
 
 		// return as soon as +2/3 of the signatures are verified
-		if talliedVotingPower > votingPowerNeeded {
+		if (talliedVotingPower > votingPowerNeeded) || (talliedVotingPower == 0 && votingPowerNeeded == 0) {
 			return nil
 		}
 	}
+
+	fmt.Printf("VerifyCommitLight: talliedVotingPower %v votingPower %v \n", talliedVotingPower, votingPowerNeeded)
 
 	return ErrNotEnoughVotingPowerSigned{Got: talliedVotingPower, Needed: votingPowerNeeded}
 }
@@ -825,11 +827,13 @@ func (vals *ValidatorSet) VerifyCommitLightTrusting(chainID string, commit *Comm
 
 			talliedVotingPower += val.VotingPower
 
-			if talliedVotingPower > votingPowerNeeded {
+			if (talliedVotingPower > votingPowerNeeded) || (talliedVotingPower == 0 && votingPowerNeeded == 0) {
 				return nil
 			}
 		}
 	}
+
+	fmt.Printf("VerifyCommitLightTrusting: talliedVotingPower %v votingPower %v \n", talliedVotingPower, votingPowerNeeded)
 
 	return ErrNotEnoughVotingPowerSigned{Got: talliedVotingPower, Needed: votingPowerNeeded}
 }
