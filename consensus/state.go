@@ -2318,7 +2318,19 @@ func (cs *State) calculatePrevoteMessageDelayMetrics() {
 			break
 		}
 	}
+
+	fmt.Printf("votingPowerSeen: %d\n", votingPowerSeen)
 	if ps.HasAll() {
+		if len(pl) < 1 {
+			fmt.Printf("ERROR: prevotes has all but no prevotes in round %d\n", cs.Round)
+			fmt.Printf("prevotes: %v\n", ps)
+			fmt.Printf("votes: %v\n", cs.Votes)
+			fmt.Printf("proposal: %v\n", cs.Proposal)
+			fmt.Printf("lock: %v\n", cs.LockedBlock)
+			fmt.Printf("commit: %v\n", cs.ValidBlock)
+			fmt.Printf("pl %v", pl)
+			return
+		}
 		cs.metrics.FullPrevoteMessageDelay.Set(pl[len(pl)-1].Timestamp.Sub(cs.Proposal.Timestamp).Seconds())
 	}
 }
