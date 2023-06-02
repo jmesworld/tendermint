@@ -164,16 +164,29 @@ func (vals *ValidatorSet) RescalePriorities(diffMax int64) {
 }
 
 func (vals *ValidatorSet) incrementProposerPriority() *Validator {
+	// Get number of validators.
 	for _, val := range vals.Validators {
+		votingPower := val.VotingPower
+		// If is zero, then set to 1.
+		if votingPower == 0 {
+			votingPower = 1
+		}
+
 		// Check for overflow for sum.
-		newPrio := safeAddClip(val.ProposerPriority, val.VotingPower)
-		val.ProposerPriority = newPrio
+		newPriority := safeAddClip(val.ProposerPriority, votingPower)
+
+		val.ProposerPriority = newPriority
 	}
 	// Decrement the validator with most ProposerPriority.
 	mostest := vals.getValWithMostPriority()
-	// Mind the underflow.
-	mostest.ProposerPriority = safeSubClip(mostest.ProposerPriority, vals.TotalVotingPower())
 
+	// Mind the underflow.
+	totalVotingPower := vals.TotalVotingPower()
+
+	if totalVotingPower == 0 {
+		totalVotingPower = 1
+	}
+	mostest.ProposerPriority = safeSubClip(mostest.ProposerPriority, totalVotingPower)
 	return mostest
 }
 
