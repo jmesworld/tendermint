@@ -2319,7 +2319,6 @@ func (cs *State) calculatePrevoteMessageDelayMetrics() {
 		}
 	}
 
-	fmt.Printf("votingPowerSeen: %d\n", votingPowerSeen)
 	if ps.HasAll() {
 		if len(pl) < 1 {
 			fmt.Printf("ERROR: prevotes has all but no prevotes in round %d\n", cs.Round)

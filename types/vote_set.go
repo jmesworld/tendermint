@@ -607,7 +607,6 @@ func (voteSet *VoteSet) LogString() string {
 // return the power voted, the total, and the fraction
 func (voteSet *VoteSet) sumTotalFrac() (int64, int64, float64) {
 	voted, total := voteSet.sum, voteSet.valSet.TotalVotingPower()
-	fmt.Printf("voteSet.sumTotalFrac() voted: %v total: %v\n", voted, total)
 
 	fracVoted := 0.0
 	// Only calculate the fraction if total is not zero
